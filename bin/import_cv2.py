@@ -14,6 +14,7 @@ from multiprocessing import Pool
 
 import progressbar
 import sox
+import ffmpeg
 
 from deepspeech_training.util.downloader import SIMPLE_BAR
 from deepspeech_training.util.importers import (
@@ -179,11 +180,11 @@ def _preprocess_data(tsv_dir, audio_dir, space_after_every_character=False):
 
 def _maybe_convert_wav(mp3_filename, wav_filename):
     if not os.path.exists(wav_filename):
-        transformer = sox.Transformer()
-        transformer.convert(samplerate=SAMPLE_RATE, n_channels=CHANNELS)
+        f_input = ffmpeg.input(mp3_filename)
+        f_output = ffmpeg.output(f_input, wav_filename, ac=CHANNELS, ar=SAMPLE_RATE)
         try:
-            transformer.build(mp3_filename, wav_filename)
-        except sox.core.SoxError:
+            f_output.run()
+        except ffmpeg.Error:
             pass
 
 
