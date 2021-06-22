@@ -181,7 +181,7 @@ def _preprocess_data(tsv_dir, audio_dir, space_after_every_character=False):
 def _maybe_convert_wav(mp3_filename, wav_filename):
     if not os.path.exists(wav_filename):
         f_input = ffmpeg.input(mp3_filename)
-        f_output = ffmpeg.output(f_input, wav_filename, ac=CHANNELS, ar=SAMPLE_RATE)
+        f_output = ffmpeg.output(f_input, wav_filename, ac=CHANNELS, ar=SAMPLE_RATE, loglevel="error")
         try:
             f_output.run()
         except ffmpeg.Error:
