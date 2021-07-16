@@ -638,6 +638,8 @@ def objective(trial):
         tfv1.reset_default_graph()
         val_loss = hps_test()
 
+    tfv1.get_variable_scope().reuse_variables()
+
     return float(val_loss)
 
 
