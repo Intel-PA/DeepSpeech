@@ -627,16 +627,16 @@ def hps_test():
 
 
 def objective(trial):
-    with tf.variable_scope("learning_rate", reuse=tf.AUTO_REUSE) as scope:
-        if FLAGS.train_files:
-            tfv1.reset_default_graph()
-            tfv1.set_random_seed(FLAGS.random_seed)
+    if FLAGS.train_files:
+        tfv1.reset_default_graph()
+        tfv1.set_random_seed(FLAGS.random_seed)
 
+        with tf.variable_scope("learning_rate", reuse=tf.AUTO_REUSE) as scope:
             hps_train(trial)
 
-        if FLAGS.test_files:
-            tfv1.reset_default_graph()
-            val_loss = hps_test()
+    if FLAGS.test_files:
+        tfv1.reset_default_graph()
+        val_loss = hps_test()
 
 
     return float(val_loss)
