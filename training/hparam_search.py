@@ -626,11 +626,7 @@ def hps_test():
     return loss
 
 
-
-
 def objective(trial):
-    initialize_globals()
-    early_training_checks()
 
     if FLAGS.train_files:
         tfv1.reset_default_graph()
@@ -645,9 +641,18 @@ def objective(trial):
     return float(val_loss)
 
 
-if __name__ == "__main__":
-    create_flags()
+def main(_):
+    initialize_globals()
+    early_training_checks()
+
     sampler = optuna.samplers.RandomSampler()
     lr_study = optuna.create_study(direction='minimize', sampler=sampler)
-    lr_study.optimize(absl.app.run(objective), n_trials=25)
+    lr_study.optimize(objective, n_trials=25)
+
+
+
+
+if __name__ == "__main__":
+    create_flags()
+    absl.app.run(main)
     
