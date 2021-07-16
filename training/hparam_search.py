@@ -196,7 +196,7 @@ def hps_evaluate(test_csvs, create_model):
         return samples, loss
 
 
-def hps_train():
+def hps_train(trial):
     exception_box = ExceptionBox()
 
     if FLAGS.horovod:
@@ -293,7 +293,7 @@ def hps_train():
         optimizer = hps_create_optimizer(learning_rate_var * hvd.size())
         optimizer = hvd.DistributedOptimizer(optimizer)
     else:
-        optimizer = hps_create_optimizer(learning_rate_var)
+        optimizer = hps_create_optimizer(trial)
 
     # Enable mixed precision training
     if FLAGS.automatic_mixed_precision:
@@ -636,7 +636,7 @@ def objective(trial):
         tfv1.reset_default_graph()
         tfv1.set_random_seed(FLAGS.random_seed)
 
-        hps_train()
+        hps_train(trial)
 
     if FLAGS.test_files:
         tfv1.reset_default_graph()
