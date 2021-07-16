@@ -196,7 +196,7 @@ def hps_evaluate(test_csvs, create_model):
         return samples, loss
 
 
-def hps_train():
+def hps_train(trial):
     exception_box = ExceptionBox()
 
     if FLAGS.horovod:
@@ -636,7 +636,7 @@ def objective(trial):
         tfv1.reset_default_graph()
         tfv1.set_random_seed(FLAGS.random_seed)
 
-        hps_train()
+        hps_train(trial)
 
     if FLAGS.test_files:
         tfv1.reset_default_graph()
