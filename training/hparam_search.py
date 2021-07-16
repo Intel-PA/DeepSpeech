@@ -648,6 +648,6 @@ def objective(trial):
 if __name__ == "__main__":
     create_flags()
     sampler = optuna.samplers.RandomSampler()
-    lr_study = optuna.create_study(direction='minimise', sampler=sampler)
+    lr_study = optuna.create_study(direction='minimize', sampler=sampler)
     lr_study.optimize(absl.app.run(objective), n_trials=25)
 
