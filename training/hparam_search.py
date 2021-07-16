@@ -73,7 +73,7 @@ DROPUT = 0.3
 
 
 def hps_create_optimizer(trial):
-    learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-1, log=True)
+    learning_rate = trial.suggest_float("adam_lr", 1e-5, 1e-1, log=True)
     learning_rate_var = tfv1.get_variable(
         "learning_rate", initializer=learning_rate, trainable=False
     )
@@ -282,9 +282,9 @@ def hps_train(trial):
     no_dropout_feed_dict = {rate: 0.0 for rate in dropout_rates}
 
     # Building the graph
-    learning_rate_var = tfv1.get_variable(
-        "learning_rate", initializer=FLAGS.learning_rate, trainable=False
-    )
+    # learning_rate_var = tfv1.get_variable(
+    #     "learning_rate", initializer=FLAGS.learning_rate, trainable=False
+    # )
     reduce_learning_rate_op = learning_rate_var.assign(
         tf.multiply(learning_rate_var, FLAGS.plateau_reduction)
     )
