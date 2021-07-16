@@ -293,7 +293,7 @@ def hps_train():
         optimizer = hps_create_optimizer(learning_rate_var * hvd.size())
         optimizer = hvd.DistributedOptimizer(optimizer)
     else:
-        optimizer = hps_create_optimizer(learning_rate_var)
+        optimizer = hps_create_optimizer(trial)
 
     # Enable mixed precision training
     if FLAGS.automatic_mixed_precision:
@@ -649,4 +649,4 @@ if __name__ == "__main__":
     create_flags()
     lr_study = optuna.create_study()
     lr_study.optimize(absl.app.run(objective), n_trials=25)
-    
+
