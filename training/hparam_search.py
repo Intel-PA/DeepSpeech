@@ -659,9 +659,9 @@ def objective(trial, session):
 
 def objective_tf(trial):
     # Clear clutter form previous session graphs.
-    # keras.backend.clear_session()
-    tfv1.reset_default_graph()
-    tfv1.set_random_seed(FLAGS.random_seed)
+    # tfv1.reset_default_graph()
+    # tfv1.set_random_seed(FLAGS.random_seed)
+    K.clear_session()
 
     with tfv1.Graph().as_default():
         with tfv1.Session(config=Config.session_config) as session:
