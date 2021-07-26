@@ -78,9 +78,10 @@ MODEL_DIR = "model/optuna_trials"
 
 def hps_create_optimizer(trial):
     learning_rate = trial.suggest_float("adam_lr", 1e-5, 1e-1, log=True)
-    learning_rate_var = tfv1.get_variable(
-        "learning_rate", initializer=learning_rate, trainable=False
-    )
+    with tf.variable_scope("learning_rate", reuse=tf.AUTO_REUSE):
+        learning_rate_var = tfv1.get_variable(
+            "learning_rate", initializer=learning_rate, trainable=False
+        )
     optimizer = tfv1.train.AdamOptimizer(
         learning_rate=learning_rate_var, beta1=0.9, beta2=0.999, epsilon=1e-08
     )
@@ -647,12 +648,12 @@ def new_trial_callback(study, trial):
 
 def objective(trial):
     if FLAGS.train_files:
-        with tf.variable_scope("learning_rate", reuse=tf.AUTO_REUSE) as scope:
-            val_loss = hps_train(trial)
+        val_loss = hps_train(trial)
+        # with tf.variable_scope("learning_rate", reuse=tf.AUTO_REUSE) as scope:
+        #     val_loss = hps_train(trial)
 
-
-        tfv1.reset_default_graph()
-        tfv1.set_random_seed(FLAGS.random_seed)
+        # tfv1.reset_default_graph()
+        # tfv1.set_random_seed(FLAGS.random_seed)
 
     return float(val_loss)
 
