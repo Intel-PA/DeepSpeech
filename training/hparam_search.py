@@ -626,6 +626,10 @@ def hps_test():
     return loss
 
 
+def new_trial_callback():
+    print("THIS IS A TEST")
+    exit()
+
 def objective(trial):
     if FLAGS.train_files:
         tfv1.reset_default_graph()
@@ -645,10 +649,8 @@ def objective(trial):
 def main(_):
     initialize_globals()
     early_training_checks()
-    #optuna.delete_study(study_name="adam_lr_study", storage="sqlite:///adam_lr_study.db")
-    #sampler = optuna.samplers.RandomSampler()
-    lr_study = optuna.create_study(study_name="adam_lr_study", storage="sqlite:///adam_lr_study.db'", load_if_exists=True, direction='minimize')
-    lr_study.optimize(objective, n_trials=10)
+    lr_study = optuna.create_study(direction='minimize')
+    lr_study.optimize(objective, n_trials=25, callbacks=[new_trial_callback])
 
 
 
