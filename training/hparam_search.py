@@ -85,7 +85,7 @@ def hps_create_optimizer(trial):
     optimizer = tfv1.train.AdamOptimizer(
         learning_rate=learning_rate_var, beta1=0.9, beta2=0.999, epsilon=1e-08
     )
-    return optimizer
+    return optimizer, learning_rate_var
 
 
 def hps_evaluate(test_csvs, create_model):
@@ -290,15 +290,18 @@ def hps_train(trial, session):
     # learning_rate_var = tfv1.get_variable(
     #     "learning_rate", initializer=FLAGS.learning_rate, trainable=False
     # )
-    reduce_learning_rate_op = learning_rate_var.assign(
-        tf.multiply(learning_rate_var, FLAGS.plateau_reduction)
-    )
+    
     if FLAGS.horovod:
         # Effective batch size in synchronous distributed training is scaled by the number of workers. An increase in learning rate compensates for the increased batch size.
         optimizer = hps_create_optimizer(learning_rate_var * hvd.size())
         optimizer = hvd.DistributedOptimizer(optimizer)
     else:
-        optimizer = hps_create_optimizer(trial)
+        optimizer, learning_rate_var = hps_create_optimizer(trial)
+    
+    
+    reduce_learning_rate_op = learning_rate_var.assign(
+        tf.multiply(learning_rate_var, FLAGS.plateau_reduction)
+    )
 
     # Enable mixed precision training
     if FLAGS.automatic_mixed_precision:
