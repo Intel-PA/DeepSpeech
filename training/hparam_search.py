@@ -287,9 +287,9 @@ def hps_train(trial, session):
     no_dropout_feed_dict = {rate: 0.0 for rate in dropout_rates}
 
     # Building the graph
-    learning_rate_var = tfv1.get_variable(
-        "learning_rate", initializer=FLAGS.learning_rate, trainable=False
-    )
+    # learning_rate_var = tfv1.get_variable(
+    #     "learning_rate", initializer=FLAGS.learning_rate, trainable=False
+    # )
     reduce_learning_rate_op = learning_rate_var.assign(
         tf.multiply(learning_rate_var, FLAGS.plateau_reduction)
     )
@@ -380,7 +380,7 @@ def hps_train(trial, session):
     # log_debug("Session opened.")
 
     # Prevent further graph changes
-    tfv1.get_default_graph().finalize()
+    # tfv1.get_default_graph().finalize()
 
     # Load checkpoint or initialize variables
     load_or_init_graph_for_training(session)
