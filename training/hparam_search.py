@@ -201,7 +201,7 @@ def hps_evaluate(test_csvs, create_model):
         return samples, loss
 
 
-def hps_train(trial):
+def hps_train(trial, session):
     exception_box = ExceptionBox()
     final_dev_loss = None
     if FLAGS.horovod:
@@ -646,9 +646,9 @@ def new_trial_callback(study, trial):
     chkpt_path = setup_dirs(study.name, trial.number + 1)
     FLAGS.checkpoint_dir = chkpt_path 
 
-def objective(trial):
+def objective(trial, session):
     if FLAGS.train_files:
-        val_loss = hps_train(trial)
+        val_loss = hps_train(trial, session)
         # with tf.variable_scope("learning_rate", reuse=tf.AUTO_REUSE) as scope:
         #     val_loss = hps_train(trial)
 
@@ -666,7 +666,7 @@ def objective_tf(trial):
     with tfv1.Graph().as_default():
         with tfv1.Session(config=Config.session_config) as session:
             K.set_session(session)
-            return objective(trial)
+            return objective(trial, session)
 
 def main(_):
     initialize_globals()
