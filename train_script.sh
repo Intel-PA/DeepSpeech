@@ -12,10 +12,10 @@ python -u DeepSpeech.py \
         --train_batch_size 32 \
         --dev_batch_size 16 \
         --test_batch_size 16 \
-        --n_hidden 512 \
         --epochs 100 \
         --checkpoint_dir checkpoints/test_run4 \
         --export_dir model/test_run4 \
+        --n_hidden 512 \
         --dropout_rate 0.30 \
         --learning_rate 0.0001 \
         --train_cudnn \
