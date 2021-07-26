@@ -198,7 +198,7 @@ def hps_evaluate(test_csvs, create_model):
 
 def hps_train(trial):
     exception_box = ExceptionBox()
-
+    final_dev_loss = None
     if FLAGS.horovod:
         import horovod.tensorflow as hvd
 
@@ -616,7 +616,11 @@ def hps_train(trial):
                     datetime.utcnow() - train_start_time
                 )
             )
+
+        final_dev_loss = dev_losses[-1]
     log_debug("Session closed.")
+    
+    return final_dev_loss
 
 
 def hps_test():
@@ -627,7 +631,7 @@ def hps_test():
 
 
 def new_trial_callback():
-    print("THIS IS A TEST")
+    exit()
 
 def objective(trial):
     if FLAGS.train_files:
@@ -635,11 +639,11 @@ def objective(trial):
         tfv1.set_random_seed(FLAGS.random_seed)
 
         with tf.variable_scope("learning_rate", reuse=tf.AUTO_REUSE) as scope:
-            hps_train(trial)
+            val_loss = hps_train(trial)
 
     if FLAGS.test_files:
         tfv1.reset_default_graph()
-        val_loss = hps_test()
+        hps_test()
 
 
     return float(val_loss)
@@ -651,7 +655,7 @@ def main(_):
 
     sampler = optuna.samplers.RandomSampler()
     lr_study = optuna.create_study(direction='minimize', sampler=sampler)
-    lr_study.optimize(objective, n_trials=25, callbacks=[new_trial_callback])
+    lr_study.optimize(objective, n_trials=1, callbacks=[new_trial_callback])
 
 
 
