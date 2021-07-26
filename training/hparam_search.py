@@ -62,7 +62,7 @@ from deepspeech_training.util.io import (
 )
 
 from deepspeech_training.train import *
-from tensorflow.python.keras import backend as K
+from tensorflow.compat.v1.keras import backend as K
 
 check_ctcdecoder_version()
 
