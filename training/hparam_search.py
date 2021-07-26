@@ -645,10 +645,10 @@ def objective(trial):
 def main(_):
     initialize_globals()
     early_training_checks()
-
-    sampler = optuna.samplers.RandomSampler()
-    lr_study = optuna.create_study(direction='minimize', sampler=sampler)
-    lr_study.optimize(objective, n_trials=25)
+    #optuna.delete_study(study_name="adam_lr_study", storage="sqlite:///adam_lr_study.db")
+    #sampler = optuna.samplers.RandomSampler()
+    lr_study = optuna.create_study(study_name="adam_lr_study", storage="sqlite:///adam_lr_study.db'", load_if_exists=True, direction='minimize')
+    lr_study.optimize(objective, n_trials=10)
 
 
 
