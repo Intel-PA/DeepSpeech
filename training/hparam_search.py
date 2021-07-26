@@ -641,7 +641,7 @@ def hps_test():
 
 
 def new_trial_callback(study, trial):
-    chkpt_path = setup_dirs(study.name, trial.number)
+    chkpt_path = setup_dirs(study.name, trial.number + 1)
     FLAGS.checkpoint_dir = chkpt_path 
 
 def objective(trial):
@@ -663,7 +663,7 @@ def main(_):
     early_training_checks()
 
     lr_study = optuna.create_study(study_name="lr_study", direction='minimize')
-    setup_dirs(lr_study.name, 0)
+    setup_dirs(lr_study.study_name, 0)
     lr_study.optimize(objective, n_trials=25, callbacks=[new_trial_callback])
 
 
