@@ -70,6 +70,16 @@ RNN_IMPL = rnn_impl_lstmblockfusedcell
 BATCH_SIZE = 32
 SEQ_LEN = None
 DROPUT = 0.3
+CHKPT_DIR = "checkpoints"
+MODEL_DIR = "model"
+
+def setup_dirs(study_name, trial_number):
+    os.mkdirs(f"{CHKPT_DIR}/logs/{study_name}/{trial_number}", exist_ok=True)
+    os.mkdirs(f"{CHKPT_DIR}/{study_name}/{trial_number}", exist_ok=True)
+    os.mkdirs(f"{MODEL_DIR}/{study_name}/{trial_number}", exist_ok=True)
+
+    return f"{CHKPT_DIR}/{study_name}/{trial_number}"
+
 
 
 def hps_create_optimizer(trial):
@@ -631,9 +641,11 @@ def hps_test():
 
 
 def new_trial_callback(study, trial):
-    print(f"Creating new directory for trial {trial.number}")
+    chkpt_path = setup_dirs(study.name, trial.number)
+    FLAGS.checkpoint_dir = chkpt_path 
 
 def objective(trial):
+    return 1
     if FLAGS.train_files:
         tfv1.reset_default_graph()
         tfv1.set_random_seed(FLAGS.random_seed)
@@ -649,7 +661,9 @@ def objective(trial):
 def main(_):
     initialize_globals()
     early_training_checks()
-    lr_study = optuna.create_study(direction='minimize')
+
+    lr_study = optuna.create_study(study_name="lr_study", direction='minimize')
+    setup_dirs(lr_study.name, 0)
     lr_study.optimize(objective, n_trials=25, callbacks=[new_trial_callback])
 
 
