@@ -62,7 +62,7 @@ from deepspeech_training.util.io import (
 )
 
 from deepspeech_training.train import *
-
+from tensorflow.python.keras import backend as K
 
 check_ctcdecoder_version()
 
@@ -376,253 +376,253 @@ def hps_train(trial):
     if FLAGS.horovod:
         bcast = hvd.broadcast_global_variables(0)
 
-    with tfv1.Session(config=Config.session_config) as session:
-        log_debug("Session opened.")
+    # with tfv1.Session(config=Config.session_config) as session:
+    # log_debug("Session opened.")
 
-        # Prevent further graph changes
-        tfv1.get_default_graph().finalize()
+    # Prevent further graph changes
+    tfv1.get_default_graph().finalize()
 
-        # Load checkpoint or initialize variables
-        load_or_init_graph_for_training(session)
-        if FLAGS.horovod:
-            bcast.run()
+    # Load checkpoint or initialize variables
+    load_or_init_graph_for_training(session)
+    if FLAGS.horovod:
+        bcast.run()
 
-        def run_set(set_name, epoch, init_op, dataset=None):
-            is_train = set_name == "train"
-            train_op = apply_gradient_op if is_train else []
-            feed_dict = dropout_feed_dict if is_train else no_dropout_feed_dict
+    def run_set(set_name, epoch, init_op, dataset=None):
+        is_train = set_name == "train"
+        train_op = apply_gradient_op if is_train else []
+        feed_dict = dropout_feed_dict if is_train else no_dropout_feed_dict
 
-            total_loss = 0.0
-            step_count = 0
+        total_loss = 0.0
+        step_count = 0
 
-            step_summary_writer = step_summary_writers.get(set_name)
-            checkpoint_time = time.time()
+        step_summary_writer = step_summary_writers.get(set_name)
+        checkpoint_time = time.time()
 
-            if is_train and FLAGS.cache_for_epochs > 0 and FLAGS.feature_cache:
-                feature_cache_index = FLAGS.feature_cache + ".index"
-                if epoch % FLAGS.cache_for_epochs == 0 and os.path.isfile(
+        if is_train and FLAGS.cache_for_epochs > 0 and FLAGS.feature_cache:
+            feature_cache_index = FLAGS.feature_cache + ".index"
+            if epoch % FLAGS.cache_for_epochs == 0 and os.path.isfile(
+                feature_cache_index
+            ):
+                log_info("Invalidating feature cache")
+                remove_remote(
                     feature_cache_index
-                ):
-                    log_info("Invalidating feature cache")
-                    remove_remote(
-                        feature_cache_index
-                    )  # this will let TF also overwrite the related cache data files
+                )  # this will let TF also overwrite the related cache data files
 
-            # Setup progress bar
-            class LossWidget(progressbar.widgets.FormatLabel):
-                def __init__(self):
-                    progressbar.widgets.FormatLabel.__init__(
-                        self, format="Loss: %(mean_loss)f"
-                    )
+        # Setup progress bar
+        class LossWidget(progressbar.widgets.FormatLabel):
+            def __init__(self):
+                progressbar.widgets.FormatLabel.__init__(
+                    self, format="Loss: %(mean_loss)f"
+                )
 
-                def __call__(self, progress, data, **kwargs):
-                    data["mean_loss"] = total_loss / step_count if step_count else 0.0
-                    return progressbar.widgets.FormatLabel.__call__(
-                        self, progress, data, **kwargs
-                    )
+            def __call__(self, progress, data, **kwargs):
+                data["mean_loss"] = total_loss / step_count if step_count else 0.0
+                return progressbar.widgets.FormatLabel.__call__(
+                    self, progress, data, **kwargs
+                )
+
+        if Config.is_master_process:
+            prefix = "Epoch {} | {:>10}".format(
+                epoch, human_readable_set_names[set_name]
+            )
+            widgets = [
+                " | ",
+                progressbar.widgets.Timer(),
+                " | Steps: ",
+                progressbar.widgets.Counter(),
+                " | ",
+                LossWidget(),
+            ]
+            suffix = " | Dataset: {}".format(dataset) if dataset else None
+            pbar = create_progressbar(
+                prefix=prefix, widgets=widgets, suffix=suffix
+            ).start()
+
+        # Initialize iterator to the appropriate dataset
+        session.run(init_op)
+
+        # Batch loop
+        while True:
+            try:
+                _, current_step, batch_loss, problem_files, step_summary = session.run(
+                    [
+                        train_op,
+                        global_step,
+                        loss,
+                        non_finite_files,
+                        step_summaries_op,
+                    ],
+                    feed_dict=feed_dict,
+                )
+                exception_box.raise_if_set()
+            except tf.errors.OutOfRangeError:
+                exception_box.raise_if_set()
+                break
+
+            if problem_files.size > 0:
+                problem_files = [f.decode("utf8") for f in problem_files[..., 0]]
+                log_error(
+                    "The following files caused an infinite (or NaN) "
+                    "loss: {}".format(",".join(problem_files))
+                )
+
+            total_loss += batch_loss
+            step_count += 1
 
             if Config.is_master_process:
-                prefix = "Epoch {} | {:>10}".format(
-                    epoch, human_readable_set_names[set_name]
-                )
-                widgets = [
-                    " | ",
-                    progressbar.widgets.Timer(),
-                    " | Steps: ",
-                    progressbar.widgets.Counter(),
-                    " | ",
-                    LossWidget(),
-                ]
-                suffix = " | Dataset: {}".format(dataset) if dataset else None
-                pbar = create_progressbar(
-                    prefix=prefix, widgets=widgets, suffix=suffix
-                ).start()
+                pbar.update(step_count)
 
-            # Initialize iterator to the appropriate dataset
-            session.run(init_op)
+                step_summary_writer.add_summary(step_summary, current_step)
 
-            # Batch loop
-            while True:
-                try:
-                    _, current_step, batch_loss, problem_files, step_summary = session.run(
-                        [
-                            train_op,
-                            global_step,
-                            loss,
-                            non_finite_files,
-                            step_summaries_op,
-                        ],
-                        feed_dict=feed_dict,
+                if (
+                    is_train
+                    and FLAGS.checkpoint_secs > 0
+                    and time.time() - checkpoint_time > FLAGS.checkpoint_secs
+                ):
+                    checkpoint_saver.save(
+                        session, checkpoint_path, global_step=current_step
                     )
-                    exception_box.raise_if_set()
-                except tf.errors.OutOfRangeError:
-                    exception_box.raise_if_set()
+                    checkpoint_time = time.time()
+
+        if Config.is_master_process:
+            pbar.finish()
+        mean_loss = total_loss / step_count if step_count > 0 else 0.0
+        return mean_loss, step_count
+
+    log_info("STARTING Optimization")
+    train_start_time = datetime.utcnow()
+    best_dev_loss = float("inf")
+    dev_losses = []
+    epochs_without_improvement = 0
+    try:
+        for epoch in range(FLAGS.epochs):
+            # Training
+            if Config.is_master_process:
+                log_progress("Training epoch %d..." % epoch)
+            train_loss, _ = run_set("train", epoch, train_init_op)
+            if Config.is_master_process:
+                log_progress(
+                    "Finished training epoch %d - loss: %f" % (epoch, train_loss)
+                )
+                checkpoint_saver.save(
+                    session, checkpoint_path, global_step=global_step
+                )
+
+            if FLAGS.dev_files:
+                # Validation
+                dev_loss = 0.0
+                total_steps = 0
+                for source, init_op in zip(dev_sources, dev_init_ops):
+                    if Config.is_master_process:
+                        log_progress(
+                            "Validating epoch %d on %s..." % (epoch, source)
+                        )
+                    set_loss, steps = run_set("dev", epoch, init_op, dataset=source)
+                    dev_loss += set_loss * steps
+                    total_steps += steps
+                    if Config.is_master_process:
+                        log_progress(
+                            "Finished validating epoch %d on %s - loss: %f"
+                            % (epoch, source, set_loss)
+                        )
+
+                dev_loss = dev_loss / total_steps
+                dev_losses.append(dev_loss)
+
+                # Count epochs without an improvement for early stopping and reduction of learning rate on a plateau
+                # the improvement has to be greater than FLAGS.es_min_delta
+                if dev_loss > best_dev_loss - FLAGS.es_min_delta:
+                    epochs_without_improvement += 1
+                else:
+                    epochs_without_improvement = 0
+
+                if Config.is_master_process:
+                    # Save new best model
+                    if dev_loss < best_dev_loss:
+                        best_dev_loss = dev_loss
+                        save_path = best_dev_saver.save(
+                            session,
+                            best_dev_path,
+                            global_step=global_step,
+                            latest_filename="best_dev_checkpoint",
+                        )
+                        log_info(
+                            "Saved new best validating model with loss %f to: %s"
+                            % (best_dev_loss, save_path)
+                        )
+
+                # Early stopping
+                if (
+                    FLAGS.early_stop
+                    and epochs_without_improvement == FLAGS.es_epochs
+                ):
+                    if Config.is_master_process:
+                        log_info(
+                            "Early stop triggered as the loss did not improve the last {} epochs".format(
+                                epochs_without_improvement
+                            )
+                        )
                     break
 
-                if problem_files.size > 0:
-                    problem_files = [f.decode("utf8") for f in problem_files[..., 0]]
-                    log_error(
-                        "The following files caused an infinite (or NaN) "
-                        "loss: {}".format(",".join(problem_files))
-                    )
+                # Reduce learning rate on plateau
+                # If the learning rate was reduced and there is still no improvement
+                # wait FLAGS.plateau_epochs before the learning rate is reduced again
+                if (
+                    FLAGS.reduce_lr_on_plateau
+                    and epochs_without_improvement > 0
+                    and epochs_without_improvement % FLAGS.plateau_epochs == 0
+                ):
+                    # Reload checkpoint that we use the best_dev weights again
+                    reload_best_checkpoint(session)
 
-                total_loss += batch_loss
-                step_count += 1
-
-                if Config.is_master_process:
-                    pbar.update(step_count)
-
-                    step_summary_writer.add_summary(step_summary, current_step)
-
-                    if (
-                        is_train
-                        and FLAGS.checkpoint_secs > 0
-                        and time.time() - checkpoint_time > FLAGS.checkpoint_secs
-                    ):
-                        checkpoint_saver.save(
-                            session, checkpoint_path, global_step=current_step
-                        )
-                        checkpoint_time = time.time()
-
-            if Config.is_master_process:
-                pbar.finish()
-            mean_loss = total_loss / step_count if step_count > 0 else 0.0
-            return mean_loss, step_count
-
-        log_info("STARTING Optimization")
-        train_start_time = datetime.utcnow()
-        best_dev_loss = float("inf")
-        dev_losses = []
-        epochs_without_improvement = 0
-        try:
-            for epoch in range(FLAGS.epochs):
-                # Training
-                if Config.is_master_process:
-                    log_progress("Training epoch %d..." % epoch)
-                train_loss, _ = run_set("train", epoch, train_init_op)
-                if Config.is_master_process:
-                    log_progress(
-                        "Finished training epoch %d - loss: %f" % (epoch, train_loss)
-                    )
-                    checkpoint_saver.save(
-                        session, checkpoint_path, global_step=global_step
-                    )
-
-                if FLAGS.dev_files:
-                    # Validation
-                    dev_loss = 0.0
-                    total_steps = 0
-                    for source, init_op in zip(dev_sources, dev_init_ops):
-                        if Config.is_master_process:
-                            log_progress(
-                                "Validating epoch %d on %s..." % (epoch, source)
-                            )
-                        set_loss, steps = run_set("dev", epoch, init_op, dataset=source)
-                        dev_loss += set_loss * steps
-                        total_steps += steps
-                        if Config.is_master_process:
-                            log_progress(
-                                "Finished validating epoch %d on %s - loss: %f"
-                                % (epoch, source, set_loss)
-                            )
-
-                    dev_loss = dev_loss / total_steps
-                    dev_losses.append(dev_loss)
-
-                    # Count epochs without an improvement for early stopping and reduction of learning rate on a plateau
-                    # the improvement has to be greater than FLAGS.es_min_delta
-                    if dev_loss > best_dev_loss - FLAGS.es_min_delta:
-                        epochs_without_improvement += 1
-                    else:
-                        epochs_without_improvement = 0
-
+                    # Reduce learning rate
+                    session.run(reduce_learning_rate_op)
+                    current_learning_rate = learning_rate_var.eval()
                     if Config.is_master_process:
-                        # Save new best model
-                        if dev_loss < best_dev_loss:
-                            best_dev_loss = dev_loss
-                            save_path = best_dev_saver.save(
-                                session,
-                                best_dev_path,
-                                global_step=global_step,
-                                latest_filename="best_dev_checkpoint",
+                        log_info(
+                            "Encountered a plateau, reducing learning rate to {}".format(
+                                current_learning_rate
                             )
-                            log_info(
-                                "Saved new best validating model with loss %f to: %s"
-                                % (best_dev_loss, save_path)
-                            )
+                        )
 
-                    # Early stopping
-                    if (
-                        FLAGS.early_stop
-                        and epochs_without_improvement == FLAGS.es_epochs
-                    ):
-                        if Config.is_master_process:
-                            log_info(
-                                "Early stop triggered as the loss did not improve the last {} epochs".format(
-                                    epochs_without_improvement
-                                )
-                            )
-                        break
+                        # Overwrite best checkpoint with new learning rate value
+                        save_path = best_dev_saver.save(
+                            session,
+                            best_dev_path,
+                            global_step=global_step,
+                            latest_filename="best_dev_checkpoint",
+                        )
+                        log_info(
+                            "Saved best validating model with reduced learning rate to: %s"
+                            % (save_path)
+                        )
 
-                    # Reduce learning rate on plateau
-                    # If the learning rate was reduced and there is still no improvement
-                    # wait FLAGS.plateau_epochs before the learning rate is reduced again
-                    if (
-                        FLAGS.reduce_lr_on_plateau
-                        and epochs_without_improvement > 0
-                        and epochs_without_improvement % FLAGS.plateau_epochs == 0
-                    ):
-                        # Reload checkpoint that we use the best_dev weights again
-                        reload_best_checkpoint(session)
+            if FLAGS.metrics_files:
+                # Read only metrics, not affecting best validation loss tracking
+                for source, init_op in zip(metrics_sources, metrics_init_ops):
+                    if Config.is_master_process:
+                        log_progress(
+                            "Metrics for epoch %d on %s..." % (epoch, source)
+                        )
+                    set_loss, _ = run_set("metrics", epoch, init_op, dataset=source)
+                    if Config.is_master_process:
+                        log_progress(
+                            "Metrics for epoch %d on %s - loss: %f"
+                            % (epoch, source, set_loss)
+                        )
 
-                        # Reduce learning rate
-                        session.run(reduce_learning_rate_op)
-                        current_learning_rate = learning_rate_var.eval()
-                        if Config.is_master_process:
-                            log_info(
-                                "Encountered a plateau, reducing learning rate to {}".format(
-                                    current_learning_rate
-                                )
-                            )
+            print("-" * 80)
 
-                            # Overwrite best checkpoint with new learning rate value
-                            save_path = best_dev_saver.save(
-                                session,
-                                best_dev_path,
-                                global_step=global_step,
-                                latest_filename="best_dev_checkpoint",
-                            )
-                            log_info(
-                                "Saved best validating model with reduced learning rate to: %s"
-                                % (save_path)
-                            )
-
-                if FLAGS.metrics_files:
-                    # Read only metrics, not affecting best validation loss tracking
-                    for source, init_op in zip(metrics_sources, metrics_init_ops):
-                        if Config.is_master_process:
-                            log_progress(
-                                "Metrics for epoch %d on %s..." % (epoch, source)
-                            )
-                        set_loss, _ = run_set("metrics", epoch, init_op, dataset=source)
-                        if Config.is_master_process:
-                            log_progress(
-                                "Metrics for epoch %d on %s - loss: %f"
-                                % (epoch, source, set_loss)
-                            )
-
-                print("-" * 80)
-
-        except KeyboardInterrupt:
-            pass
-        if Config.is_master_process:
-            log_info(
-                "FINISHED optimization in {}".format(
-                    datetime.utcnow() - train_start_time
-                )
+    except KeyboardInterrupt:
+        pass
+    if Config.is_master_process:
+        log_info(
+            "FINISHED optimization in {}".format(
+                datetime.utcnow() - train_start_time
             )
+        )
 
-        final_dev_loss = dev_losses[-1]
+    final_dev_loss = dev_losses[-1]
     log_debug("Session closed.")
 
     return final_dev_loss
@@ -657,6 +657,16 @@ def objective(trial):
 
     return float(val_loss)
 
+def objective_tf(trial):
+    # Clear clutter form previous session graphs.
+    # keras.backend.clear_session()
+    tfv1.reset_default_graph()
+    tfv1.set_random_seed(FLAGS.random_seed)
+
+    with tfv1.Graph().as_default():
+        with tfv1.Session(config=Config.session_config) as session:
+            K.set_session(session)
+            return objective(trial)
 
 def main(_):
     initialize_globals()
@@ -665,7 +675,7 @@ def main(_):
     lr_study = optuna.create_study(study_name="lr_study", direction='minimize')
     chkpt_dir = setup_dirs(lr_study.study_name, 0)
     FLAGS.checkpoint_dir = chkpt_dir
-    lr_study.optimize(objective, n_trials=25, callbacks=[new_trial_callback])
+    lr_study.optimize(objective_tf, n_trials=25, callbacks=[new_trial_callback])
 
 
 
