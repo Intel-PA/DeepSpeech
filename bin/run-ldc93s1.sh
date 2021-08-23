@@ -20,7 +20,7 @@ fi
 # and when trying to run on multiple devices (like GPUs), this will break
 export CUDA_VISIBLE_DEVICES=0
 
-python -u DeepSpeech.py --noshow_progressbar \
+python -u DeepSpeech.py --show_progressbar \
   --train_files data/ldc93s1/ldc93s1.csv \
   --test_files data/ldc93s1/ldc93s1.csv \
   --train_batch_size 1 \
@@ -28,4 +28,7 @@ python -u DeepSpeech.py --noshow_progressbar \
   --n_hidden 100 \
   --epochs 200 \
   --checkpoint_dir "$checkpoint_dir" \
+  --train_cudnn \
+  --use_allow_growth \
   "$@"
+
