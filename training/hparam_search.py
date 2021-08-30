@@ -386,7 +386,7 @@ def hps_train(trial, session):
     # tfv1.get_default_graph().finalize()
 
     # Load checkpoint or initialize variables
-    # load_or_init_graph_for_training(session)
+    load_or_init_graph_for_training(session)
     if FLAGS.horovod:
         bcast.run()
 
@@ -663,10 +663,10 @@ def objective_tf(trial):
     # tfv1.set_random_seed(FLAGS.random_seed)
     # K.clear_session()
 
-    # with tfv1.Graph().as_default():
-    with tfv1.Session(config=Config.session_config) as session:
-        # K.set_session(session)
-        return objective(trial, session)
+    with tfv1.Graph():
+        with tfv1.Session(config=Config.session_config) as session:
+            # K.set_session(session)
+            return objective(trial, session)
 
 def main(_):
     initialize_globals()
