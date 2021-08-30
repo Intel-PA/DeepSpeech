@@ -646,7 +646,7 @@ def hps_test():
 
 
 def new_trial_callback(study, trial):
-    chkpt_path = setup_dirs(study.name, trial.number + 1)
+    chkpt_path = setup_dirs(study.study_name, trial.number + 1)
     FLAGS.checkpoint_dir = chkpt_path 
 
 def objective(trial, session):
