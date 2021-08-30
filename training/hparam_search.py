@@ -383,10 +383,10 @@ def hps_train(trial, session):
     # log_debug("Session opened.")
 
     # Prevent further graph changes
-    tfv1.get_default_graph().finalize()
+    # tfv1.get_default_graph().finalize()
 
     # Load checkpoint or initialize variables
-    load_or_init_graph_for_training(session)
+    # load_or_init_graph_for_training(session)
     if FLAGS.horovod:
         bcast.run()
 
