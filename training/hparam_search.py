@@ -666,8 +666,7 @@ def objective_tf(trial):
     tfv1.reset_default_graph()
 
     with tfv1.Graph().as_default():
-        # config=Config.session_config
-        with tfv1.Session() as session:
+        with tfv1.Session(config=Config.session_config) as session:
             # K.set_session(session)
             return objective(trial, session)
 
