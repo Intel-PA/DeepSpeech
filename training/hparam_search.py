@@ -652,11 +652,6 @@ def new_trial_callback(study, trial):
 def objective(trial, session):
     if FLAGS.train_files:
         val_loss = hps_train(trial, session)
-        # with tf.variable_scope("learning_rate", reuse=tf.AUTO_REUSE) as scope:
-        #     val_loss = hps_train(trial)
-
-        # tfv1.reset_default_graph()
-        # tfv1.set_random_seed(FLAGS.random_seed)
 
     return float(val_loss)
 
