@@ -383,8 +383,8 @@ def hps_train(trial, session):
     # log_debug("Session opened.")
 
     # Prevent further graph changes
-    # tfv1.get_default_graph().finalize()
-    tfv1.reset_default_graph()
+    tfv1.get_default_graph().finalize()
+    # tfv1.reset_default_graph()
 
 
     # Load checkpoint or initialize variables
