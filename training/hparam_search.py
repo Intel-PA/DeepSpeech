@@ -663,11 +663,11 @@ def objective_tf(trial):
     # Clear clutter form previous session graphs.
     # tfv1.set_random_seed(FLAGS.random_seed)
     # K.clear_session()
-    print(f"started trial {trial}, resetting graph")
     tfv1.reset_default_graph()
 
     with tfv1.Graph().as_default():
-        with tfv1.Session(config=Config.session_config) as session:
+        # config=Config.session_config
+        with tfv1.Session() as session:
             # K.set_session(session)
             return objective(trial, session)
 
@@ -682,7 +682,7 @@ def main(_):
     FLAGS.load_checkpoint_dir = chkpt_dir
 
 
-    lr_study.optimize(objective_tf, n_trials=25, n_jobs=25, callbacks=[new_trial_callback])
+    lr_study.optimize(objective_tf, n_trials=25, callbacks=[new_trial_callback])
 
 
 
