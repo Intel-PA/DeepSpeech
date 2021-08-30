@@ -28,4 +28,5 @@ python -u DeepSpeech.py --noshow_progressbar \
   --n_hidden 100 \
   --epochs 200 \
   --checkpoint_dir "$checkpoint_dir" \
+  --train_cudnn \
   "$@"
