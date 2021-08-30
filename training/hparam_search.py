@@ -648,6 +648,8 @@ def hps_test():
 def new_trial_callback(study, trial):
     chkpt_path = setup_dirs(study.study_name, trial.number + 1)
     FLAGS.checkpoint_dir = chkpt_path 
+    FLAGS.save_checkpoint_dir = chkpt_path 
+    FLAGS.load_checkpoint_dir = chkpt_path 
 
 def objective(trial, session):
     if FLAGS.train_files:
@@ -673,6 +675,8 @@ def main(_):
     lr_study = optuna.create_study(study_name="lr_study", direction='minimize')
     chkpt_dir = setup_dirs(lr_study.study_name, 0)
     FLAGS.checkpoint_dir = chkpt_dir
+    FLAGS.save_checkpoint_dir = chkpt_dir 
+    FLAGS.load_checkpoint_dir = chkpt_dir 
     lr_study.optimize(objective_tf, n_trials=25, callbacks=[new_trial_callback])
 
 
