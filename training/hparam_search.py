@@ -659,14 +659,14 @@ def objective(trial, session):
 
 def objective_tf(trial):
     # Clear clutter form previous session graphs.
-    # tfv1.reset_default_graph()
     # tfv1.set_random_seed(FLAGS.random_seed)
     # K.clear_session()
 
-    with tfv1.Graph():
-        with tfv1.Session(config=Config.session_config) as session:
-            # K.set_session(session)
-            return objective(trial, session)
+    # with tfv1.Graph().as_default():
+    with tfv1.Session(config=Config.session_config) as session:
+        # K.set_session(session)
+        tfv1.reset_default_graph()
+        return objective(trial, session)
 
 def main(_):
     initialize_globals()
