@@ -659,7 +659,7 @@ def objective(trial, session):
 
 def objective_tf(trial):
     # Clear clutter form previous session graphs.
-    tfv1.reset_default_graph()
+    # tfv1.reset_default_graph()
     # tfv1.set_random_seed(FLAGS.random_seed)
     # K.clear_session()
 
