@@ -384,7 +384,9 @@ def hps_train(trial, session):
 
     # Prevent further graph changes
     # tfv1.get_default_graph().finalize()
+    tfv1.get_default_graph()
 
+    
     # Load checkpoint or initialize variables
     load_or_init_graph_for_training(session)
     if FLAGS.horovod:
@@ -661,11 +663,11 @@ def objective_tf(trial):
     # Clear clutter form previous session graphs.
     # tfv1.set_random_seed(FLAGS.random_seed)
     # K.clear_session()
+    # tfv1.reset_default_graph()
 
     # with tfv1.Graph().as_default():
     with tfv1.Session(config=Config.session_config) as session:
         # K.set_session(session)
-        tfv1.reset_default_graph()
         return objective(trial, session)
 
 def main(_):
