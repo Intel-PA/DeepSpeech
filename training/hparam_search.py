@@ -679,8 +679,13 @@ def main(_):
     chkpt_dir = setup_dirs(lr_study.study_name, 0)
     FLAGS.checkpoint_dir = chkpt_dir
     FLAGS.save_checkpoint_dir = chkpt_dir 
-    FLAGS.load_checkpoint_dir = chkpt_dir 
-    lr_study.optimize(objective_tf, n_trials=25, callbacks=[new_trial_callback])
+    FLAGS.load_checkpoint_dir = chkpt_dir
+
+
+    for s in range(2):
+        val_loss = objective_tf(s)
+
+    # lr_study.optimize(objective_tf, n_trials=25, callbacks=[new_trial_callback])
 
 
 
