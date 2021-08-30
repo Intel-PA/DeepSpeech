@@ -384,9 +384,9 @@ def hps_train(trial, session):
 
     # Prevent further graph changes
     # tfv1.get_default_graph().finalize()
-    tfv1.get_default_graph()
+    tfv1.reset_default_graph()
 
-    
+
     # Load checkpoint or initialize variables
     load_or_init_graph_for_training(session)
     if FLAGS.horovod:
