@@ -202,7 +202,6 @@ def hps_evaluate(test_csvs, create_model):
 
 
 def hps_train(trial):
-    print("in hps_train")
     exception_box = ExceptionBox()
     final_dev_loss = None
     if FLAGS.horovod:
@@ -272,7 +271,6 @@ def hps_train(trial):
         metrics_init_ops = [
             iterator.make_initializer(metrics_set) for metrics_set in metrics_sets
         ]
-    print("created datasets")
     # Dropout
     dropout_rates = [
         tfv1.placeholder(tf.float32, name="dropout_{}".format(i)) for i in range(6)
@@ -327,10 +325,11 @@ def hps_train(trial):
             gradients, global_step=global_step
         )
     else:
+        print([n.name for n in tfv1.get_default_graph().as_graph_def().node])
         gradients, loss, non_finite_files = get_tower_results(
             iterator, optimizer, dropout_rates
         )
-        print("building graph")
+        
 
         # Average tower gradients across GPUs
         avg_tower_gradients = average_gradients(gradients)
