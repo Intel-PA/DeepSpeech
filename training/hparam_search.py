@@ -202,6 +202,7 @@ def hps_evaluate(test_csvs, create_model):
 
 
 def hps_train(trial):
+    print("in hps_train")
     exception_box = ExceptionBox()
     final_dev_loss = None
     if FLAGS.horovod:
@@ -271,7 +272,7 @@ def hps_train(trial):
         metrics_init_ops = [
             iterator.make_initializer(metrics_set) for metrics_set in metrics_sets
         ]
-
+    print("created datasets")
     # Dropout
     dropout_rates = [
         tfv1.placeholder(tf.float32, name="dropout_{}".format(i)) for i in range(6)
@@ -298,7 +299,7 @@ def hps_train(trial):
     else:
         optimizer, learning_rate_var = hps_create_optimizer(trial)
     
-    
+    print("building graph")
     reduce_learning_rate_op = learning_rate_var.assign(
         tf.multiply(learning_rate_var, FLAGS.plateau_reduction)
     )
@@ -380,6 +381,7 @@ def hps_train(trial):
         bcast = hvd.broadcast_global_variables(0)
 
     with tfv1.Session(config=Config.session_config) as session:
+        print("starting session")
         log_debug("Session opened.")
 
         # Prevent further graph changes
