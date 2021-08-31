@@ -19,6 +19,7 @@ import tensorflow.compat.v1 as tfv1
 import time
 import json
 import sys
+import wandb
 
 from multiprocessing import cpu_count
 
@@ -297,6 +298,8 @@ def hps_train(trial):
     else:
         optimizer, learning_rate_var = hps_create_optimizer(trial)
     
+    config = wandb.config
+    config.learning_rate = learning_rate_var
     reduce_learning_rate_op = learning_rate_var.assign(
         tf.multiply(learning_rate_var, FLAGS.plateau_reduction)
     )
@@ -631,6 +634,7 @@ def hps_train(trial):
             )
 
         final_dev_loss = dev_losses[-1]
+        wandb.tensorflow.log(tf.summary.merge_all())
     log_debug("Session closed.")
     return final_dev_loss
 
@@ -667,7 +671,7 @@ def objective_tf(trial):
     # K.clear_session()
     # tfv1.reset_default_graph()
 
-    with tfv1.Graph().as_default() as g:
+    with tfv1.Graph().as_default():
         return objective(trial)
         # with tfv1.Session(config=Config.session_config, graph=g) as session:
             # K.set_session(session)
@@ -681,7 +685,7 @@ def main(_):
     FLAGS.checkpoint_dir = chkpt_dir
     FLAGS.save_checkpoint_dir = chkpt_dir 
     FLAGS.load_checkpoint_dir = chkpt_dir
-    lr_study.optimize(objective_tf, n_trials=25, callbacks=[new_trial_callback])
+    lr_study.optimize(objective_tf, n_trials=1, callbacks=[new_trial_callback])
 
 
 
