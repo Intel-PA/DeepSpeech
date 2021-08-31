@@ -303,7 +303,6 @@ def hps_train(trial):
         tf.multiply(learning_rate_var, FLAGS.plateau_reduction)
     )
 
-    print("building graph")
     # Enable mixed precision training
     if FLAGS.automatic_mixed_precision:
         log_info("Enabling automatic mixed precision training.")
@@ -331,6 +330,7 @@ def hps_train(trial):
         gradients, loss, non_finite_files = get_tower_results(
             iterator, optimizer, dropout_rates
         )
+        print("building graph")
 
         # Average tower gradients across GPUs
         avg_tower_gradients = average_gradients(gradients)
