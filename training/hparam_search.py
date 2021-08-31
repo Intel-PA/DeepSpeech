@@ -380,7 +380,7 @@ def hps_train(trial):
         bcast = hvd.broadcast_global_variables(0)
 
     with tfv1.Session(config=Config.session_config) as session:
-    log_debug("Session opened.")
+        log_debug("Session opened.")
 
         # Prevent further graph changes
         tfv1.get_default_graph().finalize()
