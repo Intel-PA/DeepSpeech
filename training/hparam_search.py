@@ -387,7 +387,7 @@ def hps_train(trial):
         log_debug("Session opened.")
 
         # Prevent further graph changes
-        # tfv1.get_default_graph().finalize()
+        tfv1.get_default_graph().finalize()
         # tfv1.reset_default_graph()
 
 
@@ -632,7 +632,8 @@ def hps_train(trial):
             )
 
         final_dev_loss = dev_losses[-1]
-        wandb.tensorflow.log(tf.summary.merge_all())
+        wandb.tensorflow.log(tf.summary.merge_all("step_summaries"))
+
     log_debug("Session closed.")
     return final_dev_loss
 
