@@ -325,7 +325,9 @@ def hps_train(trial):
             gradients, global_step=global_step
         )
     else:
-        print([n.name for n in tfv1.get_default_graph().as_graph_def().node])
+        graph = tf.get_default_graph()
+        list_of_tuples = [op.values() for op in graph.get_operations()]
+        print(list_of_tuples)
         gradients, loss, non_finite_files = get_tower_results(
             iterator, optimizer, dropout_rates
         )
