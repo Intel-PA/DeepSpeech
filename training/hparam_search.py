@@ -346,6 +346,7 @@ def hps_train(trial):
         )
 
     # Summaries
+    wandb.init(project='deepspeech')
     step_summaries_op = tfv1.summary.merge_all("step_summaries")
     step_summary_writers = {
         "train": tfv1.summary.FileWriter(
