@@ -299,11 +299,11 @@ def hps_train(trial):
     else:
         optimizer, learning_rate_var = hps_create_optimizer(trial)
     
-    print("building graph")
     reduce_learning_rate_op = learning_rate_var.assign(
         tf.multiply(learning_rate_var, FLAGS.plateau_reduction)
     )
 
+    print("building graph")
     # Enable mixed precision training
     if FLAGS.automatic_mixed_precision:
         log_info("Enabling automatic mixed precision training.")
