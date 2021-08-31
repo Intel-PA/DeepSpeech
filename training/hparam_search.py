@@ -652,7 +652,7 @@ def new_trial_callback(study, trial):
     FLAGS.save_checkpoint_dir = chkpt_path 
     FLAGS.load_checkpoint_dir = chkpt_path 
 
-def objective(trial, session):
+def objective(trial):
     if FLAGS.train_files:
         val_loss = hps_train(trial)
 
