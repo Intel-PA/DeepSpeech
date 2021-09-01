@@ -298,8 +298,6 @@ def hps_train(trial):
     else:
         optimizer, learning_rate_var = hps_create_optimizer(trial)
     
-    config = wandb.config
-    config.learning_rate = learning_rate_var
     reduce_learning_rate_op = learning_rate_var.assign(
         tf.multiply(learning_rate_var, FLAGS.plateau_reduction)
     )
