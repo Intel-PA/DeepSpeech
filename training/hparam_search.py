@@ -215,7 +215,7 @@ def hps_train(trial):
     else:
         graph = tfv1.get_default_graph()
         list_of_tuples = [op.values() for op in graph.get_operations()]
-        print(list_of_tuples)
+        # print(list_of_tuples)
         gradients, loss, non_finite_files = get_tower_results(
             iterator, optimizer, dropout_rates
         )
@@ -572,7 +572,7 @@ def main(_):
     FLAGS.checkpoint_dir = chkpt_dir
     FLAGS.save_checkpoint_dir = chkpt_dir 
     FLAGS.load_checkpoint_dir = chkpt_dir
-    lr_study.optimize(objective, n_trials=2, callbacks=[new_trial_callback])
+    lr_study.optimize(objective_tf, n_trials=2, callbacks=[new_trial_callback])
 
 
 
