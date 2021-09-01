@@ -631,7 +631,7 @@ def hps_train(trial):
             )
 
         final_dev_loss = dev_losses[-1]
-        wandb.tensorflow.log({"dev_losses": dev_losses})
+        wandb.log({"dev_losses": dev_losses})
     log_debug("Session closed.")
     return final_dev_loss
 
