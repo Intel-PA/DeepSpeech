@@ -619,6 +619,7 @@ def hps_train(trial):
                                 % (epoch, source, set_loss)
                             )
 
+                wandb.log({"dev_loss": dev_loss}, step=epoch)
                 print("-" * 80)
 
         except KeyboardInterrupt:
@@ -631,7 +632,6 @@ def hps_train(trial):
             )
 
         final_dev_loss = dev_losses[-1]
-        wandb.log({"dev_losses": dev_losses})
     log_debug("Session closed.")
     return final_dev_loss
 
