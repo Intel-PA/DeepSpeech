@@ -346,7 +346,7 @@ def hps_train(trial):
         )
 
     # Summaries
-    wandb.init(project='deepspeech')
+    
     step_summaries_op = tfv1.summary.merge_all("step_summaries")
     step_summary_writers = {
         "train": tfv1.summary.FileWriter(
@@ -633,8 +633,7 @@ def hps_train(trial):
             )
 
         final_dev_loss = dev_losses[-1]
-        wandb.tensorflow.log(tf.summary.merge_all())
-
+        wandb.tensorflow.log({"dev_losses": dev_losses})
     log_debug("Session closed.")
     return final_dev_loss
 
@@ -660,9 +659,11 @@ def new_trial_callback(study, trial):
     FLAGS.load_checkpoint_dir = chkpt_path 
 
 def objective(trial):
+    wandb.init(project='deepspeech', reinit=True)
+    wandb.config.update(FLAGS)
     if FLAGS.train_files:
         val_loss = hps_train(trial)
-
+    wandb.join()
     return float(val_loss)
 
 def objective_tf(trial):
