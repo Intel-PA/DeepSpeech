@@ -79,7 +79,7 @@ MODEL_DIR = "model/optuna_trials"
 
 def hps_create_optimizer(trial):
     learning_rate = trial.suggest_float("adam_lr", 1e-5, 1e-1, log=True)
-    with tf.variable_scope("learning_rate", reuse=tf.AUTO_REUSE):
+    with tfv1.variable_scope("learning_rate", reuse=tf.AUTO_REUSE):
         learning_rate_var = tfv1.get_variable(
             "learning_rate", initializer=learning_rate, trainable=False
         )
