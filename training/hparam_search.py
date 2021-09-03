@@ -503,7 +503,7 @@ def hps_train(trial):
                                 % (epoch, source, set_loss)
                             )
 
-                # wandb.log({"dev_loss": dev_loss, "train_loss": train_loss}, step=epoch)
+                wandb.log({"dev_loss": dev_loss, "train_loss": train_loss}, step=epoch)
                 print("-" * 80)
 
         except KeyboardInterrupt:
@@ -521,9 +521,7 @@ def hps_train(trial):
 
 
 def setup_dirs(study_name, trial_number):
-    #os.makedirs(f"{CHKPT_DIR}/logs/{study_name}/{trial_number}", exist_ok=True)
     os.makedirs(f"{CHKPT_DIR}/{study_name}/{trial_number}", exist_ok=True)
-    #os.makedirs(f"{MODEL_DIR}/{study_name}/{trial_number}", exist_ok=True)
 
     return f"{CHKPT_DIR}/{study_name}/{trial_number}"
 
@@ -549,15 +547,9 @@ def objective(trial):
     return float(val_loss)
 
 def objective_tf(trial):
-    # Clear clutter form previous session graphs.
-    # tfv1.set_random_seed(FLAGS.random_seed)
-    # K.clear_session()
-    # tfv1.reset_default_graph()
     rnn_impl_cudnn_rnn.cell = None
     with tfv1.Graph().as_default():
         return objective(trial)
-        # with tfv1.Session(config=Config.session_config, graph=g) as session:
-            # K.set_session(session)
 
 def main(_):
     initialize_globals()
@@ -568,8 +560,19 @@ def main(_):
     FLAGS.checkpoint_dir = chkpt_dir
     FLAGS.save_checkpoint_dir = chkpt_dir 
     FLAGS.load_checkpoint_dir = chkpt_dir
-    lr_study.optimize(objective_tf, n_trials=2, callbacks=[new_trial_callback])
+    lr_study.optimize(objective_tf, n_trials=5, callbacks=[new_trial_callback])
 
+    summary = wandb.init(project='deepspeech')
+    wandb.config.update(FLAGS)
+
+    trials = lr_study.trials
+    for step, trial in enumerate(trials):
+        # Logging the loss.
+        summary.log({"mse": trial.value}, step=step)
+
+        # Logging the parameters.
+        for k, v in trial.params.items():
+            summary.log({k: v}, step=step)
 
 
 
