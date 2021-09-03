@@ -179,6 +179,7 @@ def create_model(batch_x, seq_length, dropout, reuse=False, batch_size=None, pre
     # Reshape to prepare input for first layer
     batch_x = tf.reshape(batch_x, [-1, Config.n_input + 2*Config.n_input*Config.n_context]) # (n_steps*batch_size, n_input + 2*n_input*n_context)
     layers['input_reshaped'] = batch_x
+    print("BREAK POINT")
 
     # The next three blocks will pass `batch_x` through three hidden layers with
     # clipped RELU activation and dropout.
@@ -213,7 +214,6 @@ def create_model(batch_x, seq_length, dropout, reuse=False, batch_size=None, pre
     layers['raw_logits'] = layer_6
 
     # Output shape: [n_steps, batch_size, n_hidden_6]
-    print("BREAK POINT")
     return layer_6, layers
 
 
