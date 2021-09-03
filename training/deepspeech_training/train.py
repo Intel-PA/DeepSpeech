@@ -243,9 +243,9 @@ def calculate_mean_edit_distance_and_loss(iterator, dropout, reuse):
     # Calculate the logits of the batch
     logits, _ = create_model(batch_x, batch_seq_len, dropout, reuse=reuse, rnn_impl=rnn_impl)
 
+    print(logits)
     # Compute the CTC loss using TensorFlow's `ctc_loss`
     total_loss = tfv1.nn.ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
-    print("BREAK POINT")
 
     # Check if any files lead to non finite loss
     non_finite_files = tf.gather(batch_filenames, tfv1.where(~tf.math.is_finite(total_loss)))
