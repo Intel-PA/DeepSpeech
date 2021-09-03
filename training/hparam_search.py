@@ -503,7 +503,6 @@ def hps_train(trial):
                                 % (epoch, source, set_loss)
                             )
 
-                # wandb.log({"dev_loss": dev_loss, "train_loss": train_loss}, step=epoch)
                 print("-" * 80)
 
         except KeyboardInterrupt:
@@ -539,11 +538,12 @@ def new_trial_callback(study, trial):
     FLAGS.load_checkpoint_dir = chkpt_path 
 
 def objective(trial):
-    # wandb.init(project='deepspeech', reinit=True)
-    # wandb.config.update(FLAGS)
+    wandb.init(project='deepspeech', reinit=True)
+    wandb.config.update(FLAGS)
     if FLAGS.train_files:
         val_loss = hps_train(trial)
-    # wandb.join()
+        wandb.log({"dev_loss": dev_loss, "train_loss": train_loss}, step=epoch)
+    wandb.join()
     return float(val_loss)
 
 def objective_tf(trial):
@@ -562,18 +562,20 @@ def main(_):
     FLAGS.load_checkpoint_dir = chkpt_dir
     lr_study.optimize(objective_tf, n_trials=15, callbacks=[new_trial_callback])
 
-    summary = wandb.init(project='deepspeech')
-    wandb.config.update(FLAGS)
+    # summary = wandb.init(project='deepspeech')
+    # wandb.config.update(FLAGS)
 
-    trials = lr_study.trials
-    for step, trial in enumerate(trials):
-        # Logging the loss.
-        summary.log({"dev_loss": trial.value}, step=step)
+    # trials = lr_study.trials
+    # for step, trial in enumerate(trials):
+    #     # Logging the loss.
+    #     summary.log({"dev_loss": trial.value}, step=step)
 
-        # Logging the parameters.
-        for k, v in trial.params.items():
-            summary.log({k: v}, step=step)
+    #     # Logging the parameters.
+    #     for k, v in trial.params.items():
+    #         summary.log({k: v}, step=step)
 
+    # fig = optuna.visualization.plot_parallel_coordinate(lr_study, params=["adam_lr"])
+    # fig.show()
 
 
 if __name__ == "__main__":
