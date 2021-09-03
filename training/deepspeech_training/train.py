@@ -306,11 +306,11 @@ def get_tower_results(iterator, optimizer, dropout_rates):
 
     with tfv1.variable_scope(tfv1.get_variable_scope()):
         # Loop over available_devices
-        print("BREAK POINT")
         for i in range(len(Config.available_devices)):
             # Execute operations of tower i on device i
             device = Config.available_devices[i]
             with tf.device(device):
+                print("BREAK POINT")
                 # Create a scope for all operations of tower i
                 with tf.name_scope('tower_%d' % i):
                     # Calculate the avg_loss and mean_edit_distance and retrieve the decoded
