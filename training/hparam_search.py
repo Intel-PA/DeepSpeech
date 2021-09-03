@@ -503,6 +503,7 @@ def hps_train(trial):
                                 % (epoch, source, set_loss)
                             )
 
+                wandb.log({"val_loss": dev_loss, "train_loss": train_loss}, step=epoch)
                 print("-" * 80)
 
         except KeyboardInterrupt:
@@ -542,7 +543,6 @@ def objective(trial):
     wandb.config.update(FLAGS)
     if FLAGS.train_files:
         val_loss = hps_train(trial)
-        wandb.log({"val_loss": val_loss}, step=epoch)
     wandb.join()
     return float(val_loss)
 
