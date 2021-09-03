@@ -507,7 +507,7 @@ def hps_train(trial):
                                 % (epoch, source, set_loss)
                             )
 
-                wandb.log({"dev_loss": dev_loss, "train_loss": train_loss}, step=epoch)
+                # wandb.log({"dev_loss": dev_loss, "train_loss": train_loss}, step=epoch)
                 print("-" * 80)
 
         except KeyboardInterrupt:
@@ -545,11 +545,11 @@ def new_trial_callback(study, trial):
     FLAGS.load_checkpoint_dir = chkpt_path 
 
 def objective(trial):
-    wandb.init(project='deepspeech', reinit=True)
-    wandb.config.update(FLAGS)
+    # wandb.init(project='deepspeech', reinit=True)
+    # wandb.config.update(FLAGS)
     if FLAGS.train_files:
         val_loss = hps_train(trial)
-    wandb.join()
+    # wandb.join()
     return float(val_loss)
 
 def objective_tf(trial):
