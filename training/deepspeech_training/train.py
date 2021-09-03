@@ -305,6 +305,7 @@ def get_tower_results(iterator, optimizer, dropout_rates):
     tower_non_finite_files = []
 
     with tfv1.variable_scope(tfv1.get_variable_scope()):
+        print("BREAK POINT")
         # Loop over available_devices
         for i in range(len(Config.available_devices)):
             # Execute operations of tower i on device i
