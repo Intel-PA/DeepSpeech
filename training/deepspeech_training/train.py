@@ -97,6 +97,7 @@ def dense(name, x, units, dropout_rate=None, relu=True, layer_norm=False):
 
 def rnn_impl_lstmblockfusedcell(x, seq_length, previous_state, reuse):
     with tfv1.variable_scope('cudnn_lstm/rnn/multi_rnn_cell/cell_0'):
+        print("BREAK POINT")
         fw_cell = tf.contrib.rnn.LSTMBlockFusedCell(Config.n_cell_dim,
                                                     forget_bias=0,
                                                     reuse=reuse,
@@ -190,7 +191,6 @@ def create_model(batch_x, seq_length, dropout, reuse=False, batch_size=None, pre
     # as the LSTM RNN expects its input to be of shape `[max_time, batch_size, input_size]`.
     layer_3 = tf.reshape(layer_3, [-1, batch_size, Config.n_hidden_3])
 
-    print("BREAK POINT")
     # Run through parametrized RNN implementation, as we use different RNNs
     # for training and inference
     output, output_state = rnn_impl(layer_3, seq_length, previous_state, reuse)
