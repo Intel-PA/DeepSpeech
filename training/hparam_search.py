@@ -503,7 +503,7 @@ def hps_train(trial):
                                 % (epoch, source, set_loss)
                             )
 
-                wandb.log({"dev_loss": dev_loss, "train_loss": train_loss}, step=epoch)
+                # wandb.log({"dev_loss": dev_loss, "train_loss": train_loss}, step=epoch)
                 print("-" * 80)
 
         except KeyboardInterrupt:
