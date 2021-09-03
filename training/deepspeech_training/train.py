@@ -239,10 +239,10 @@ def calculate_mean_edit_distance_and_loss(iterator, dropout, reuse):
         rnn_impl = rnn_impl_cudnn_rnn
     else:
         rnn_impl = rnn_impl_lstmblockfusedcell
-    print("BREAK POINT")
 
     # Calculate the logits of the batch
     logits, _ = create_model(batch_x, batch_seq_len, dropout, reuse=reuse, rnn_impl=rnn_impl)
+    print("BREAK POINT")
 
     # Compute the CTC loss using TensorFlow's `ctc_loss`
     total_loss = tfv1.nn.ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
