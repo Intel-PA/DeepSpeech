@@ -553,7 +553,7 @@ def objective_tf(trial):
     # tfv1.set_random_seed(FLAGS.random_seed)
     # K.clear_session()
     # tfv1.reset_default_graph()
-
+    rnn_impl_cudnn_rnn.cell = None
     with tfv1.Graph().as_default():
         return objective(trial)
         # with tfv1.Session(config=Config.session_config, graph=g) as session:
