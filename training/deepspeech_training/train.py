@@ -213,6 +213,7 @@ def create_model(batch_x, seq_length, dropout, reuse=False, batch_size=None, pre
     layers['raw_logits'] = layer_6
 
     # Output shape: [n_steps, batch_size, n_hidden_6]
+    print("BREAK POINT")
     return layer_6, layers
 
 
@@ -242,8 +243,7 @@ def calculate_mean_edit_distance_and_loss(iterator, dropout, reuse):
 
     # Calculate the logits of the batch
     logits, _ = create_model(batch_x, batch_seq_len, dropout, reuse=reuse, rnn_impl=rnn_impl)
-    print("logits are:")
-    print(logits)
+    
     # Compute the CTC loss using TensorFlow's `ctc_loss`
     total_loss = tfv1.nn.ctc_loss(labels=batch_y, inputs=logits, sequence_length=batch_seq_len)
 
