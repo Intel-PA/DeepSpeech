@@ -96,7 +96,6 @@ def dense(name, x, units, dropout_rate=None, relu=True, layer_norm=False):
 
 
 def rnn_impl_lstmblockfusedcell(x, seq_length, previous_state, reuse):
-    print("BREAK POINT")
     with tfv1.variable_scope('cudnn_lstm/rnn/multi_rnn_cell/cell_0'):
         fw_cell = tf.contrib.rnn.LSTMBlockFusedCell(Config.n_cell_dim,
                                                     forget_bias=0,
@@ -114,6 +113,7 @@ def rnn_impl_lstmblockfusedcell(x, seq_length, previous_state, reuse):
 def rnn_impl_cudnn_rnn(x, seq_length, previous_state, _):
     assert previous_state is None # 'Passing previous state not supported with CuDNN backend'
 
+    print("BREAK POINT")
     # Hack: CudnnLSTM works similarly to Keras layers in that when you instantiate
     # the object it creates the variables, and then you just call it several times
     # to enable variable re-use. Because all of our code is structure in an old
