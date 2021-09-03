@@ -568,7 +568,7 @@ def main(_):
     trials = lr_study.trials
     for step, trial in enumerate(trials):
         # Logging the loss.
-        summary.log({"mse": trial.value}, step=step)
+        summary.log({"dev_loss": trial.value}, step=step)
 
         # Logging the parameters.
         for k, v in trial.params.items():
