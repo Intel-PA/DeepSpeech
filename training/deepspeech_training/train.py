@@ -113,7 +113,6 @@ def rnn_impl_lstmblockfusedcell(x, seq_length, previous_state, reuse):
 def rnn_impl_cudnn_rnn(x, seq_length, previous_state, _):
     assert previous_state is None # 'Passing previous state not supported with CuDNN backend'
 
-    print("BREAK POINT")
     # Hack: CudnnLSTM works similarly to Keras layers in that when you instantiate
     # the object it creates the variables, and then you just call it several times
     # to enable variable re-use. Because all of our code is structure in an old
@@ -121,6 +120,7 @@ def rnn_impl_cudnn_rnn(x, seq_length, previous_state, _):
     # reuse=True to reuse variables, we can't easily make use of the object oriented
     # way CudnnLSTM is implemented, so we save a singleton instance in the function,
     # emulating a static function variable.
+    print(f"BREAK POINT: {rnn_impl_cudnn_rnn.cell}")
     if not rnn_impl_cudnn_rnn.cell:
         # Forward direction cell:
         fw_cell = tf.contrib.cudnn_rnn.CudnnLSTM(num_layers=1,
