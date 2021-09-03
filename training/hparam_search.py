@@ -67,9 +67,6 @@ from tensorflow.compat.v1.keras import backend as K
 
 check_ctcdecoder_version()
 
-BATCH_SIZE = 32
-SEQ_LEN = None
-DROPUT = 0.3
 CHKPT_DIR = "checkpoints/optuna_trials"
 MODEL_DIR = "model/optuna_trials"
 
