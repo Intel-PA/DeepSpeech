@@ -542,7 +542,7 @@ def objective(trial):
     wandb.config.update(FLAGS)
     if FLAGS.train_files:
         val_loss = hps_train(trial)
-        wandb.log({"dev_loss": dev_loss, "train_loss": train_loss}, step=epoch)
+        wandb.log({"val_loss": val_loss}, step=epoch)
     wandb.join()
     return float(val_loss)
 
