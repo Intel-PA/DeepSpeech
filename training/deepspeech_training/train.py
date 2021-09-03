@@ -120,7 +120,6 @@ def rnn_impl_cudnn_rnn(x, seq_length, previous_state, _):
     # reuse=True to reuse variables, we can't easily make use of the object oriented
     # way CudnnLSTM is implemented, so we save a singleton instance in the function,
     # emulating a static function variable.
-    print(f"BREAK POINT: {rnn_impl_cudnn_rnn.cell}")
     if not rnn_impl_cudnn_rnn.cell:
         # Forward direction cell:
         fw_cell = tf.contrib.cudnn_rnn.CudnnLSTM(num_layers=1,
