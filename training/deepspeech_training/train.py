@@ -239,6 +239,7 @@ def calculate_mean_edit_distance_and_loss(iterator, dropout, reuse):
         rnn_impl = rnn_impl_cudnn_rnn
     else:
         rnn_impl = rnn_impl_lstmblockfusedcell
+    print("BREAK POINT")
 
     # Calculate the logits of the batch
     logits, _ = create_model(batch_x, batch_seq_len, dropout, reuse=reuse, rnn_impl=rnn_impl)
@@ -315,7 +316,6 @@ def get_tower_results(iterator, optimizer, dropout_rates):
                     # Calculate the avg_loss and mean_edit_distance and retrieve the decoded
                     # batch along with the original batch's labels (Y) of this tower
                     avg_loss, non_finite_files = calculate_mean_edit_distance_and_loss(iterator, dropout_rates, reuse=i > 0)
-                    print("BREAK POINT")
 
                     # Allow for variables to be re-used by the next tower
                     tfv1.get_variable_scope().reuse_variables()
