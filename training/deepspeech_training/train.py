@@ -190,10 +190,10 @@ def create_model(batch_x, seq_length, dropout, reuse=False, batch_size=None, pre
     # as the LSTM RNN expects its input to be of shape `[max_time, batch_size, input_size]`.
     layer_3 = tf.reshape(layer_3, [-1, batch_size, Config.n_hidden_3])
 
-    print("BREAK POINT")
     # Run through parametrized RNN implementation, as we use different RNNs
     # for training and inference
     output, output_state = rnn_impl(layer_3, seq_length, previous_state, reuse)
+    print("BREAK POINT")
 
     # Reshape output from a tensor of shape [n_steps, batch_size, n_cell_dim]
     # to a tensor of shape [n_steps*batch_size, n_cell_dim]
