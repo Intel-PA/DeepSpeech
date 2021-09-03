@@ -67,7 +67,6 @@ from tensorflow.compat.v1.keras import backend as K
 
 check_ctcdecoder_version()
 
-RNN_IMPL = rnn_impl_lstmblockfusedcell
 BATCH_SIZE = 32
 SEQ_LEN = None
 DROPUT = 0.3
