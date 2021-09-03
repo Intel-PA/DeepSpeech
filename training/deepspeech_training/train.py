@@ -310,9 +310,9 @@ def get_tower_results(iterator, optimizer, dropout_rates):
             # Execute operations of tower i on device i
             device = Config.available_devices[i]
             with tf.device(device):
-                print("BREAK POINT")
                 # Create a scope for all operations of tower i
                 with tf.name_scope('tower_%d' % i):
+                    print("BREAK POINT")
                     # Calculate the avg_loss and mean_edit_distance and retrieve the decoded
                     # batch along with the original batch's labels (Y) of this tower
                     avg_loss, non_finite_files = calculate_mean_edit_distance_and_loss(iterator, dropout_rates, reuse=i > 0)
