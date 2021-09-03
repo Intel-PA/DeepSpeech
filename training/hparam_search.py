@@ -560,7 +560,7 @@ def main(_):
     FLAGS.checkpoint_dir = chkpt_dir
     FLAGS.save_checkpoint_dir = chkpt_dir 
     FLAGS.load_checkpoint_dir = chkpt_dir
-    lr_study.optimize(objective_tf, n_trials=5, callbacks=[new_trial_callback])
+    lr_study.optimize(objective_tf, n_trials=15, callbacks=[new_trial_callback])
 
     summary = wandb.init(project='deepspeech')
     wandb.config.update(FLAGS)
