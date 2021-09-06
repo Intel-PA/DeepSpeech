@@ -517,9 +517,11 @@ def setup_dirs(study_name, trial_number):
 def hps_set_params(trial):
     FLAGS.learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-1, log=True)
     FLAGS.n_hidden = trial.suggest_categorical("n_hidden", [64, 128, 256, 512, 1024])
+    FLAGS.dropout_rate = trial.suggest_float("dropout_rate", 0, 0.75, step=0.25)
     return {
         "learning_rate": FLAGS.learning_rate, 
-        "n_hidden": FLAGS.n_hidden
+        "n_hidden": FLAGS.n_hidden,
+        "dropout_rate": FLAGS.dropout_rate,
     }
 
 def new_trial_callback(study, trial):
@@ -540,7 +542,6 @@ def objective_tf(trial):
             val_loss = hps_train(trial)
         wandb.join()
         return float(val_loss)
-        # return objective(trial)
 
 def main(_):
     lr_study = optuna.create_study(study_name="lr_study", direction='minimize')
