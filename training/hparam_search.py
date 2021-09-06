@@ -72,21 +72,6 @@ MODEL_DIR = "model/optuna_trials"
 
 
 
-
-# def hps_create_optimizer(trial):
-#     learning_rate = trial.suggest_float("trial_learning_rate", 1e-5, 1e-1, log=True)
-#     FLAGS.learning_rate = learning_rate
-#     with tfv1.variable_scope("learning_rate", reuse=tf.AUTO_REUSE):
-#         learning_rate_var = tfv1.get_variable(
-#             "learning_rate", initializer=FLAGS.learning_rate, trainable=False
-#         )
-#     optimizer = tfv1.train.AdamOptimizer(
-#         learning_rate=learning_rate_var, beta1=0.9, beta2=0.999, epsilon=1e-08
-#     )
-#     return optimizer, learning_rate_var
-
-
-
 def hps_train(trial):
     exception_box = ExceptionBox()
     final_dev_loss = None
@@ -543,13 +528,6 @@ def new_trial_callback(study, trial):
     FLAGS.save_checkpoint_dir = chkpt_path 
     FLAGS.load_checkpoint_dir = chkpt_path 
 
-# def objective(trial):
-#     wandb.init(project='deepspeech', reinit=True)
-#     if FLAGS.train_files:
-#         val_loss = hps_train(trial)
-#     wandb.join()
-#     return float(val_loss)
-
 def objective_tf(trial):
     params = hps_set_params(trial)
     initialize_globals()
@@ -571,22 +549,6 @@ def main(_):
     FLAGS.save_checkpoint_dir = chkpt_dir 
     FLAGS.load_checkpoint_dir = chkpt_dir
     lr_study.optimize(objective_tf, n_trials=25, callbacks=[new_trial_callback])
-
-    # summary = wandb.init(project='deepspeech')
-    # wandb.config.update(FLAGS)
-
-    # trials = lr_study.trials
-    # for step, trial in enumerate(trials):
-    #     # Logging the loss.
-    #     summary.log({"dev_loss": trial.value}, step=step)
-
-    #     # Logging the parameters.
-    #     for k, v in trial.params.items():
-    #         summary.log({k: v}, step=step)
-
-    # fig = optuna.visualization.plot_parallel_coordinate(lr_study, params=["adam_lr"])
-    # fig.show()
-
 
 if __name__ == "__main__":
     create_flags()
