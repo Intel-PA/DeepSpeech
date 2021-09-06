@@ -555,6 +555,7 @@ def objective_tf(trial):
     initialize_globals()
     early_training_checks()
     rnn_impl_cudnn_rnn.cell = None
+    FLAGS.read_buffer = "1MB"
     with tfv1.Graph().as_default():
         wandb.init(project='deepspeech', config=params, reinit=True)
         if FLAGS.train_files:
