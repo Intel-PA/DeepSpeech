@@ -530,8 +530,8 @@ def setup_dirs(study_name, trial_number):
 
 
 def hps_set_params(trial):
-    FLAGS.learning_rate = trial.suggest_float("trial_learning_rate", 1e-5, 1e-1, log=True)
-    FLAGS.n_hidden = trial.suggest_categorical("trial_n_hidden", [64, 128, 256, 512, 1024])
+    FLAGS.learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-1, log=True)
+    FLAGS.n_hidden = trial.suggest_categorical("n_hidden", [64, 128, 256, 512, 1024])
     return {
         "learning_rate": FLAGS.learning_rate, 
         "n_hidden": FLAGS.n_hidden
