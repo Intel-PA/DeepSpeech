@@ -73,16 +73,18 @@ MODEL_DIR = "model/optuna_trials"
 
 
 
-def hps_create_optimizer(trial):
-    learning_rate = trial.suggest_float("adam_lr", 1e-5, 1e-1, log=True)
-    with tfv1.variable_scope("learning_rate", reuse=tf.AUTO_REUSE):
-        learning_rate_var = tfv1.get_variable(
-            "learning_rate", initializer=learning_rate, trainable=False
-        )
-    optimizer = tfv1.train.AdamOptimizer(
-        learning_rate=learning_rate_var, beta1=0.9, beta2=0.999, epsilon=1e-08
-    )
-    return optimizer, learning_rate_var
+# def hps_create_optimizer(trial):
+#     learning_rate = trial.suggest_float("trial_learning_rate", 1e-5, 1e-1, log=True)
+#     FLAGS.learning_rate = learning_rate
+#     with tfv1.variable_scope("learning_rate", reuse=tf.AUTO_REUSE):
+#         learning_rate_var = tfv1.get_variable(
+#             "learning_rate", initializer=FLAGS.learning_rate, trainable=False
+#         )
+#     optimizer = tfv1.train.AdamOptimizer(
+#         learning_rate=learning_rate_var, beta1=0.9, beta2=0.999, epsilon=1e-08
+#     )
+#     return optimizer, learning_rate_var
+
 
 
 def hps_train(trial):
@@ -170,16 +172,17 @@ def hps_train(trial):
     no_dropout_feed_dict = {rate: 0.0 for rate in dropout_rates}
 
     # Building the graph
-    # learning_rate_var = tfv1.get_variable(
-    #     "learning_rate", initializer=FLAGS.learning_rate, trainable=False
-    # )
+    learning_rate_var = tfv1.get_variable(
+        "learning_rate", initializer=FLAGS.learning_rate, trainable=False
+    )
     
     if FLAGS.horovod:
         # Effective batch size in synchronous distributed training is scaled by the number of workers. An increase in learning rate compensates for the increased batch size.
         optimizer = hps_create_optimizer(learning_rate_var * hvd.size())
         optimizer = hvd.DistributedOptimizer(optimizer)
     else:
-        optimizer, learning_rate_var = hps_create_optimizer(trial)
+        # optimizer, learning_rate_var = hps_create_optimizer(trial)
+        optimizer = create_optimizer(learning_rate_var)
     
     reduce_learning_rate_op = learning_rate_var.assign(
         tf.multiply(learning_rate_var, FLAGS.plateau_reduction)
@@ -525,12 +528,14 @@ def setup_dirs(study_name, trial_number):
 
     return f"{CHKPT_DIR}/{study_name}/{trial_number}"
 
-def hps_test():
-    samples, loss = hps_evaluate(FLAGS.test_files.split(","), create_model)
-    if FLAGS.test_output_file:
-        save_samples_json(samples, FLAGS.test_output_file)
-    return loss
 
+def hps_set_params(trial):
+    FLAGS.learning_rate = trial.suggest_float("trial_learning_rate", 1e-5, 1e-1, log=True)
+    FLAGS.n_hidden = trial.suggest_categorical("trial_n_hidden", [64, 128, 256, 512, 1024])
+    return {
+        "learning_rate": FLAGS.learning_rate, 
+        "n_hidden": FLAGS.n_hidden
+    }
 
 def new_trial_callback(study, trial):
     chkpt_path = setup_dirs(study.study_name, trial.number + 1)
@@ -538,29 +543,33 @@ def new_trial_callback(study, trial):
     FLAGS.save_checkpoint_dir = chkpt_path 
     FLAGS.load_checkpoint_dir = chkpt_path 
 
-def objective(trial):
-    wandb.init(project='deepspeech', reinit=True)
-    wandb.config.update(FLAGS)
-    if FLAGS.train_files:
-        val_loss = hps_train(trial)
-    wandb.join()
-    return float(val_loss)
+# def objective(trial):
+#     wandb.init(project='deepspeech', reinit=True)
+#     if FLAGS.train_files:
+#         val_loss = hps_train(trial)
+#     wandb.join()
+#     return float(val_loss)
 
 def objective_tf(trial):
-    rnn_impl_cudnn_rnn.cell = None
-    with tfv1.Graph().as_default():
-        return objective(trial)
-
-def main(_):
+    params = hps_set_params(trial)
     initialize_globals()
     early_training_checks()
+    rnn_impl_cudnn_rnn.cell = None
+    with tfv1.Graph().as_default():
+        wandb.init(project='deepspeech', config=params, reinit=True)
+        if FLAGS.train_files:
+            val_loss = hps_train(trial)
+        wandb.join()
+        return float(val_loss)
+        # return objective(trial)
 
+def main(_):
     lr_study = optuna.create_study(study_name="lr_study", direction='minimize')
     chkpt_dir = setup_dirs(lr_study.study_name, 0)
     FLAGS.checkpoint_dir = chkpt_dir
     FLAGS.save_checkpoint_dir = chkpt_dir 
     FLAGS.load_checkpoint_dir = chkpt_dir
-    lr_study.optimize(objective_tf, n_trials=15, callbacks=[new_trial_callback])
+    lr_study.optimize(objective_tf, n_trials=25, callbacks=[new_trial_callback])
 
     # summary = wandb.init(project='deepspeech')
     # wandb.config.update(FLAGS)
