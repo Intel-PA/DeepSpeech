@@ -46,7 +46,6 @@ def initialize_globals():
         log_warn('--cache_for_epochs == 1 is (re-)creating the feature cache on every epoch but will never use it.')
 
     # Read-buffer
-    print(FLAGS.read_buffer, type(FLAGS.read_buffer))
     FLAGS.read_buffer = parse_file_size(FLAGS.read_buffer)
 
     # Set default dropout rates
